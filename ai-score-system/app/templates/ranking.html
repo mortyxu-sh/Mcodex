@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}排行榜{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">公开排名</p>
+    <h1>{{ selected_stage.name if selected_stage else "总排行榜" }}</h1>
+  </div>
+  <a class="button" href="/submit">提交成果</a>
+</section>
+
+<div class="tabs">
+  <a class="{{ 'active' if not selected_stage }}" href="/">总榜</a>
+  {% for stage in stages %}
+    <a class="{{ 'active' if selected_stage and selected_stage.id == stage.id }}" href="/ranking?stage_id={{ stage.id }}">阶段{{ stage.stage_no }}</a>
+  {% endfor %}
+</div>
+
+<section class="stats-grid">
+  <div><strong>{{ total_players }}</strong><span>参赛人数</span></div>
+  <div><strong>{{ current_submission_count }}</strong><span>有效提交</span></div>
+  <div><strong>{{ scored_submission_count }}</strong><span>已评分提交</span></div>
+  <div><strong>{{ selected_stage.award_name if selected_stage else "综合排名" }}</strong><span>当前视图</span></div>
+</section>
+
+<section class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>排名</th>
+        <th>选手</th>
+        <th>产线/小组</th>
+        <th>平均分</th>
+        <th>评委数</th>
+        <th>状态</th>
+        <th>更新时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td class="rank">{{ row.rank }}</td>
+        <td>{{ row.player.name }}</td>
+        <td>{{ row.player.team }} {{ row.player.group_name }}</td>
+        <td>{{ "%.2f"|format(row.avg_score) if row.avg_score is not none else "-" }}</td>
+        <td>{{ row.judge_count }}</td>
+        <td><span class="status {{ 'ok' if row.submit_status == '已评分' else 'muted' }}">{{ row.submit_status }}</span></td>
+        <td>{{ row.updated_at.strftime("%Y-%m-%d %H:%M") if row.updated_at else "-" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

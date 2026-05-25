@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}评委工作台{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">当前评委：{{ user.display_name }}</p>
+    <h1>评委工作台</h1>
+  </div>
+</section>
+<div class="tabs">
+  <a class="{{ 'active' if not stage_id }}" href="/judge/dashboard">全部</a>
+  {% for stage in stages %}
+    <a class="{{ 'active' if stage_id == stage.id }}" href="/judge/dashboard?stage_id={{ stage.id }}">阶段{{ stage.stage_no }}</a>
+  {% endfor %}
+</div>
+<section class="submission-list">
+  {% for submission in submissions %}
+  {% set avg, count = stats[submission.id] %}
+  <article class="panel submission">
+    <div>
+      <p class="eyebrow">{{ submission.stage.name }} · {{ submission.player.name }}</p>
+      <h2>{{ submission.title }}</h2>
+      <p>{{ submission.description }}</p>
+      <div class="file-list">
+        {% for file in submission.files %}
+          <a href="/judge/download/{{ file.id }}">{{ file.original_name }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="score-side">
+      <strong>{{ "%.2f"|format(avg) if avg is not none else "-" }}</strong>
+      <span>{{ count }} 位评委</span>
+      <span>{{ "已评分" if my_scores[submission.id] else "未评分" }}</span>
+      <a class="button" href="/judge/submissions/{{ submission.id }}/score">评分</a>
+    </div>
+  </article>
+  {% else %}
+  <div class="panel empty">暂无提交物</div>
+  {% endfor %}
+</section>
+{% endblock %}

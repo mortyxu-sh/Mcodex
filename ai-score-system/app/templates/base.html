@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AI先锋挑战赛评分系统{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">AI先锋挑战赛评分系统</a>
+    <nav>
+      <a href="/">排行榜</a>
+      <a href="/submit">选手提交</a>
+      <a href="/judge/dashboard">评委工作台</a>
+      <a href="/admin">管理后台</a>
+      {% if request.session.get("user_id") %}
+        <a href="/logout">退出</a>
+      {% else %}
+        <a href="/login">登录</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

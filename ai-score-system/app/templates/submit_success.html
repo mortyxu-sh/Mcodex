@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}提交成功{% endblock %}
+{% block content %}
+<section class="panel success-box">
+  <p class="eyebrow">提交成功</p>
+  <h1>{{ submission.title }}</h1>
+  <p>提交编号：{{ submission.id }}</p>
+  <p>提交阶段：{{ submission.stage.name }}</p>
+  <p>提交时间：{{ submission.submitted_at.strftime("%Y-%m-%d %H:%M:%S") }}</p>
+  <a class="button primary" href="/">查看排行榜</a>
+</section>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}提交阶段成果{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">选手提交</p>
+    <h1>提交阶段成果</h1>
+  </div>
+</section>
+<form class="panel form-grid" method="post" action="/submit" enctype="multipart/form-data">
+  <label>选手姓名
+    <select name="player_id" required>
+      {% for player in players %}<option value="{{ player.id }}">{{ player.name }} - {{ player.team }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>提交阶段
+    <select name="stage_id" required>
+      {% for stage in stages %}<option value="{{ stage.id }}">{{ stage.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="wide">成果标题
+    <input name="title" required maxlength="200">
+  </label>
+  <label class="wide">成果说明
+    <textarea name="description" rows="6"></textarea>
+  </label>
+  <label>主文件
+    <input type="file" name="main_file" required>
+  </label>
+  <label>附加文件
+    <input type="file" name="extra_files" multiple>
+  </label>
+  <div class="form-actions wide"><button class="button primary" type="submit">提交成果</button></div>
+</form>
+{% endblock %}

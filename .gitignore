@@ -1,0 +1,23 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Runtime data and uploads
+*.db
+uploads/
+
+# Node / frontend build outputs
+node_modules/
+dist/
+build/
+.next/
+.cache/

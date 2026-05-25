@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>营销大并发管理门户</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h1>营销大并发</h1>
+      <button class="nav active" data-tab="customers">客户管理</button>
+      <button class="nav" data-tab="numberList">黑白名单</button>
+      <button class="nav" data-tab="callerAuth">主叫白名单</button>
+      <div class="hint">Python 管理门户<br/>Nginx → FastAPI → 8098</div>
+    </aside>
+    <main>
+      <section id="customers" class="panel active">
+        <div class="title"><h2>客户查询 / 添加 / 编辑</h2><button onclick="loadCustomers()">刷新</button></div>
+        <div class="toolbar">
+          <input id="custAccount" placeholder="客户账号 account" />
+          <select id="custStatus"><option value="">全部状态</option><option value="1">启用</option><option value="0">禁用</option></select>
+          <button onclick="loadCustomers()">查询</button>
+        </div>
+        <form class="card" onsubmit="addCustomer(event)">
+          <input name="account" placeholder="客户账号" required />
+          <input name="name" placeholder="客户名称" required />
+          <input name="balance" placeholder="余额" type="number" step="0.0001" value="0" />
+          <input name="unitPrice" placeholder="单价" type="number" step="0.0001" value="0.1" />
+          <select name="payType"><option value="0">预付费</option><option value="1">后付费</option></select>
+          <input name="maxCallsPerHour" placeholder="每小时频控 0不限制" type="number" value="0" />
+          <button>添加客户</button>
+        </form>
+        <table><thead><tr><th>ID</th><th>账号</th><th>名称</th><th>余额</th><th>单价</th><th>付费</th><th>频控</th><th>状态</th><th>操作</th></tr></thead><tbody id="customersBody"></tbody></table>
+        <div id="customersPager" class="pager"></div>
+      </section>
+
+      <section id="numberList" class="panel">
+        <div class="title"><h2>被叫黑白名单查询 / 添加 / 批量 / 导出</h2><button onclick="loadNumberList()">刷新</button></div>
+        <div class="toolbar">
+          <input id="nlCustomer" placeholder="客户账号 customerAcc" />
+          <input id="nlNumber" placeholder="号码/前缀" />
+          <select id="nlListType"><option value="">全部名单</option><option value="1">黑名单</option><option value="2">白名单</option></select>
+          <select id="nlMatchType"><option value="">全部匹配</option><option value="1">精确</option><option value="2">前缀</option></select>
+          <button onclick="loadNumberList()">查询</button>
+          <button onclick="exportNumberList()">导出 CSV</button>
+          <button onclick="syncNumberList()">同步 Redis</button>
+        </div>
+        <form class="card" onsubmit="addNumber(event)">
+          <input name="customerAcc" placeholder="客户账号" required />
+          <input name="number" placeholder="号码/前缀" required />
+          <select name="listType"><option value="1">黑名单</option><option value="2">白名单</option></select>
+          <select name="matchType"><option value="1">精确匹配</option><option value="2">前缀匹配</option></select>
+          <button>添加号码</button>
+        </form>
+        <form class="card" onsubmit="batchAddNumber(event)">
+          <input name="customerAcc" placeholder="客户账号" required />
+          <select name="listType"><option value="1">批量黑名单</option><option value="2">批量白名单</option></select>
+          <select name="matchType"><option value="1">精确匹配</option><option value="2">前缀匹配</option></select>
+          <input name="file" type="file" accept=".txt,.csv,.xlsx" required />
+          <button>批量添加</button>
+        </form>
+        <div id="batchResult" class="result"></div>
+        <table><thead><tr><th>ID</th><th>客户</th><th>号码</th><th>名单</th><th>匹配</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="numberBody"></tbody></table>
+        <div id="numberPager" class="pager"></div>
+      </section>
+
+      <section id="callerAuth" class="panel">
+        <div class="title"><h2>主叫鉴权白名单</h2><button onclick="loadCallerAuth()">刷新</button></div>
+        <div class="toolbar">
+          <input id="caCustomer" placeholder="客户账号 customerAcc" />
+          <button onclick="loadCallerAuth()">查询</button>
+          <button onclick="syncCallerAuth()">同步 Redis</button>
+        </div>
+        <form class="card" onsubmit="addCallerAuth(event)">
+          <input name="customerAcc" placeholder="客户账号" required />
+          <input name="callerNumber" placeholder="主叫号码" required />
+          <button>添加主叫</button>
+        </form>
+        <table><thead><tr><th>ID</th><th>客户</th><th>主叫</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="callerBody"></tbody></table>
+        <div id="callerPager" class="pager"></div>
+      </section>
+    </main>
+  </div>
+  <div id="toast"></div>
+  <dialog id="customerDialog">
+    <form method="dialog" id="customerEditForm" class="modal-form">
+      <h3>编辑客户</h3>
+      <input name="id" type="hidden" />
+      <input name="account" placeholder="客户账号" required />
+      <input name="name" placeholder="客户名称" required />
+      <input name="balance" placeholder="余额" type="number" step="0.0001" />
+      <input name="unitPrice" placeholder="单价" type="number" step="0.0001" />
+      <select name="payType"><option value="0">预付费</option><option value="1">后付费</option></select>
+      <input name="maxCallsPerHour" placeholder="每小时频控 0不限制" type="number" />
+      <select name="status"><option value="1">启用</option><option value="0">禁用</option></select>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeCustomerDialog()">取消</button>
+        <button type="submit">保存</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="confirmDialog">
+    <form method="dialog" class="modal-form compact">
+      <h3 id="confirmTitle">请确认</h3>
+      <p id="confirmMessage"></p>
+      <div class="modal-actions">
+        <button id="confirmCancel" type="button" class="secondary">取消</button>
+        <button id="confirmOk" type="button" class="danger">确认</button>
+      </div>
+    </form>
+  </dialog>
+  <script src="/static/app.js"></script>
+</body>
+</html>

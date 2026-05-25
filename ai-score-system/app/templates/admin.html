@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}管理后台{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">管理员：{{ user.display_name }}</p>
+    <h1>管理后台</h1>
+  </div>
+  <a class="button primary" href="/admin/export/scores.csv">导出评分 CSV</a>
+</section>
+
+<div class="tabs anchor-tabs">
+  <a href="#players">选手</a>
+  <a href="#users">评委</a>
+  <a href="#stages">阶段</a>
+  <a href="#criteria">细则</a>
+  <a href="#submissions">提交物</a>
+</div>
+
+<section id="players" class="panel admin-section">
+  <h2>选手管理</h2>
+  <form class="inline-form" method="post" action="/admin/players">
+    <input name="name" placeholder="姓名" required>
+    <input name="team" placeholder="产线/部门">
+    <input name="group_name" placeholder="小组">
+    <input name="phone" placeholder="联系方式">
+    <button class="button" type="submit">新增</button>
+  </form>
+  <table>
+    <thead><tr><th>姓名</th><th>团队</th><th>小组</th><th>电话</th><th>启用</th><th>操作</th></tr></thead>
+    <tbody>
+      {% for player in players %}
+      <tr>
+        <form method="post" action="/admin/players">
+          <input type="hidden" name="player_id" value="{{ player.id }}">
+          <td><input name="name" value="{{ player.name }}"></td>
+          <td><input name="team" value="{{ player.team }}"></td>
+          <td><input name="group_name" value="{{ player.group_name }}"></td>
+          <td><input name="phone" value="{{ player.phone }}"></td>
+          <td><input type="checkbox" name="is_active" {{ "checked" if player.is_active }}></td>
+          <td><button class="button small" type="submit">保存</button></td>
+        </form>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section id="users" class="panel admin-section">
+  <h2>评委/管理员管理</h2>
+  <form class="inline-form" method="post" action="/admin/users">
+    <input name="username" placeholder="账号" required>
+    <input name="display_name" placeholder="显示名称" required>
+    <select name="role"><option value="judge">评委</option><option value="admin">管理员</option></select>
+    <input name="password" placeholder="初始密码" required>
+    <button class="button" type="submit">新增</button>
+  </form>
+  <table>
+    <thead><tr><th>账号</th><th>名称</th><th>角色</th><th>重置密码</th><th>启用</th><th>操作</th></tr></thead>
+    <tbody>
+      {% for item in users %}
+      <tr>
+        <form method="post" action="/admin/users">
+          <input type="hidden" name="user_id" value="{{ item.id }}">
+          <td><input name="username" value="{{ item.username }}"></td>
+          <td><input name="display_name" value="{{ item.display_name }}"></td>
+          <td><select name="role"><option value="judge" {{ "selected" if item.role == "judge" }}>评委</option><option value="admin" {{ "selected" if item.role == "admin" }}>管理员</option></select></td>
+          <td><input name="password" placeholder="留空不改"></td>
+          <td><input type="checkbox" name="is_active" {{ "checked" if item.is_active }}></td>
+          <td><button class="button small" type="submit">保存</button></td>
+        </form>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section id="stages" class="panel admin-section">
+  <h2>阶段管理</h2>
+  {% for stage in stages %}
+  <form class="stage-form" method="post" action="/admin/stages">
+    <input type="hidden" name="stage_id" value="{{ stage.id }}">
+    <input name="name" value="{{ stage.name }}">
+    <input name="award_name" value="{{ stage.award_name }}">
+    <input type="number" name="award_quota" value="{{ stage.award_quota }}" min="0">
+    <textarea name="description" rows="2">{{ stage.description }}</textarea>
+    <label><input type="checkbox" name="submit_open" {{ "checked" if stage.submit_open }}> 提交开放</label>
+    <label><input type="checkbox" name="score_open" {{ "checked" if stage.score_open }}> 评分开放</label>
+    <label><input type="checkbox" name="ranking_visible" {{ "checked" if stage.ranking_visible }}> 展示排行</label>
+    <button class="button small" type="submit">保存</button>
+  </form>
+  {% endfor %}
+</section>
+
+<section id="criteria" class="panel admin-section">
+  <h2>评分细则</h2>
+  <form class="inline-form" method="post" action="/admin/criteria">
+    <select name="stage_id">{% for stage in stages %}<option value="{{ stage.id }}">{{ stage.name }}</option>{% endfor %}</select>
+    <input name="name" placeholder="维度名称" required>
+    <input type="number" step="0.1" name="max_score" placeholder="满分" required>
+    <input type="number" name="sort_order" value="1" min="1">
+    <input name="description" placeholder="说明">
+    <button class="button" type="submit">新增</button>
+  </form>
+  <table>
+    <thead><tr><th>阶段</th><th>维度</th><th>满分</th><th>排序</th><th>说明</th><th>操作</th></tr></thead>
+    <tbody>
+    {% for item in criteria %}
+      <tr>
+        <form method="post" action="/admin/criteria">
+          <input type="hidden" name="criteria_id" value="{{ item.id }}">
+          <td><select name="stage_id">{% for stage in stages %}<option value="{{ stage.id }}" {{ "selected" if stage.id == item.stage_id }}>{{ stage.name }}</option>{% endfor %}</select></td>
+          <td><input name="name" value="{{ item.name }}"></td>
+          <td><input type="number" step="0.1" name="max_score" value="{{ item.max_score }}"></td>
+          <td><input type="number" name="sort_order" value="{{ item.sort_order }}"></td>
+          <td><input name="description" value="{{ item.description }}"></td>
+          <td><button class="button small" type="submit">保存</button></td>
+        </form>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section id="submissions" class="panel admin-section">
+  <h2>提交物管理</h2>
+  <table>
+    <thead><tr><th>阶段</th><th>选手</th><th>标题</th><th>平均分</th><th>评委数</th><th>提交时间</th><th>状态</th><th>操作</th></tr></thead>
+    <tbody>
+    {% for submission in submissions %}
+      {% set avg, count = stats[submission.id] %}
+      <tr>
+        <td>{{ submission.stage.name }}</td>
+        <td>{{ submission.player.name }}</td>
+        <td>{{ submission.title }}</td>
+        <td>{{ "%.2f"|format(avg) if avg is not none else "-" }}</td>
+        <td>{{ count }}</td>
+        <td>{{ submission.submitted_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td>{{ "有效" if submission.is_current else "无效" }}</td>
+        <td><form method="post" action="/admin/submissions/{{ submission.id }}/toggle"><button class="button small" type="submit">切换</button></form></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

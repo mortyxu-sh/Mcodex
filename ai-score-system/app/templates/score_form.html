@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}评分{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">{{ submission.stage.name }} · {{ submission.player.name }}</p>
+    <h1>{{ submission.title }}</h1>
+  </div>
+  <a class="button" href="/judge/dashboard">返回</a>
+</section>
+<section class="panel">
+  <p>{{ submission.description }}</p>
+  <div class="file-list">
+    {% for file in submission.files %}<a href="/judge/download/{{ file.id }}">{{ file.original_name }}</a>{% endfor %}
+  </div>
+</section>
+<form class="panel form-grid" method="post">
+  {% for item in criteria %}
+  <label>
+    {{ item.name }}（0-{{ "%.0f"|format(item.max_score) }}）
+    <small>{{ item.description }}</small>
+    <input type="number" name="criteria_{{ item.id }}" min="0" max="{{ item.max_score }}" step="0.1" value="{{ values.get(item.id, 0) }}" required>
+  </label>
+  {% endfor %}
+  <label class="wide">评语
+    <textarea name="comment" rows="5" required>{{ score.comment if score else "" }}</textarea>
+  </label>
+  <div class="form-actions wide">
+    <span>当前平均分：{{ "%.2f"|format(avg_score) if avg_score is not none else "-" }} / {{ judge_count }} 位评委</span>
+    <button class="button primary" type="submit">保存评分</button>
+  </div>
+</form>
+{% endblock %}
